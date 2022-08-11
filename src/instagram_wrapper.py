@@ -8,7 +8,7 @@ from instagram_private_api import (
     ClientThrottledError,
 )
 
-from dtos import Comment, Coordinates, GeoData, Post, User
+from dtos import Comment, Coordinates, GeoData, Post, User, UserInfo
 
 def following_validator(func):
         def wrapper(*args, **kwargs):
@@ -91,7 +91,16 @@ class InstagramWrapper:
             users = [User(id=r['pk'], is_private=r['is_private']) for r in results.get('users', [])]
             followings.extend(users, [])
             next_max_id = results.get('next_max_id')
-        return followings    
+        return followings
+
+    @following_validator
+    def get_posts(self) -> List[Post]:
+        return self._feed 
+
+    def get_user_info(self, user_id: int) -> UserInfo:
+        url = 'users/{user_id!s}/full_detail_info/'.format(**{'user_id': self._user['id']})
+        content = self.instagram_client._call_api(url)
+        
 
     def _init_user(self, username: str) -> None:
         content = self.instagram_client.username_info(username)
